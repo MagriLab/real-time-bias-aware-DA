@@ -102,31 +102,58 @@ def add_noise_to_flow(U, V, noise_level=0.05, noise_type="gauss", spatial_smooth
 
 
 
-def set_working_directories(subfolder='', root=None):
+def find_first_ascending_folder(start_dir, target_names):
+    """
+    Ascends from start_dir looking for any of the target_names folders.
+    Returns (parent_path, found_folder), or (None, None) if not found.
+
+    # Usage Example:
+    parent, found = find_first_ascending_folder('.', ['src', 'dev'])
+    if parent:
+        print(f"Found {found} in {parent}")
+    """
+    dir_path = os.path.abspath(start_dir)
+    while True:
+        existing = [name for name in target_names if name in os.listdir(dir_path)]
+        if existing:
+            return dir_path, existing
+        parent = os.path.dirname(dir_path)
+        if parent == dir_path:
+            return None, False
+        dir_path = parent
+
+
+
+
+def set_working_directories(subfolder='', root='.'):
     if subfolder[-1] != '/':
         subfolder += '/'
 
     
     tutorial = 'tutorials' in os.getcwd()
 
-    def find_root(start_dir):
-        dir_path = os.path.abspath(start_dir)
-        while True:
-            if 'src' in os.listdir(dir_path) and 'scripts' in os.listdir(dir_path):
-                return dir_path
-            parent = os.path.dirname(dir_path)
-            if parent == dir_path:  # Reached system root
-                return None
-            dir_path = parent
+    # def find_root(start_dir):
+    #     dir_path = os.path.abspath(start_dir)
+    #     while True:
+    #         if 'src' in os.listdir(dir_path) and 'scripts' in os.listdir(dir_path):
+    #             return dir_path
+    #         parent = os.path.dirname(dir_path)
+    #         if parent == dir_path:  # Reached system root
+    #             return None
+    #         dir_path = parent
+    # # Find the project root directory
+    # if root is not None:
+    #     project_root = root
+    # else:
 
     # Find the project root directory
-    if root is not None:
-        project_root = root
-    else:
-        # Find the project root directory
-        project_root = find_root(os.getcwd()) 
+    # if root is None:
+    project_root, found = find_first_ascending_folder(root, ['src', 'dev']) 
+    if found[0] == 'dev':
+        project_root = os.path.join(project_root, 'real_public')
+        print('On dev folder, root=' , project_root)
         
-    if project_root is None:
+    elif not found:
         raise FileNotFoundError("Project root directory not found. Ensure you are in the correct directory structure.")
 
     #  Set results and fgures folders
@@ -138,19 +165,7 @@ def set_working_directories(subfolder='', root=None):
         figs_folder = os.path.join(project_root, 'results/figs', subfolder)
 
     #  Set data folder. Note: some data is not provided in the repository.  
-    # if os.path.isdir('/Users/andreanovoa'):
-    #     data_folder = os.path.join('/Users/andreanovoa', 'data', subfolder)
-    # elif os.path.isdir('/Users/anovoama/'):
-    #     data_folder = os.path.join('/Users/anovoama', 'data', subfolder)
-    # else:
     data_folder = os.path.join(project_root, 'data', subfolder)
-
-
-
-    # # Check data folder exists
-    # if not os.path.isdir(data_folder):
-    #     raise FileNotFoundError(f"Data folder {data_folder} does not exist.")
-
 
     return data_folder, results_folder, figs_folder
 
