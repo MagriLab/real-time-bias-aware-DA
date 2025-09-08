@@ -34,7 +34,7 @@ pip install -e . --use-pep517
 pytest -s --log-cli-level=INFO test_tutorials.py >> test_output.txt 2>&1
 ```
 
-Checkout the [Tutorials folder](https://github.com/andreanovoa/real-time-bias-aware-DA/tree/main/tutorials), which includes several jupyter notebooks aiming to ease the understanding of the repository.
+Checkout the [Tutorials folder](https://github.com/andreanovoa/real-time-bias-aware-DA/blob/main/scripts/tutorials), which includes several jupyter notebooks aiming to ease the understanding of the repository.
 
 
 
