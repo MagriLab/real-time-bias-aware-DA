@@ -53,7 +53,7 @@ Checkout the [Tutorials folder](https://github.com/andreanovoa/real-time-bias-aw
    * Lorenz63
    * Azimuthal thermoaocustics model
    
-   Data-driven models [`essentials.models_datadriven`](https://github.com/andreanovoa/real-time-bias-aware-DA/blob/main/essentials/models_datadriven.py)
+   Data-driven models [`src.models_datadriven`](https://github.com/andreanovoa/real-time-bias-aware-DA/blob/main/src/models_datadriven.py)
    * ESN_model -- Echo state network as a frorecasting tool
    * POD-ESN -- Combines Proper Orthogonal Decomposition (POD) and ESN_model
     
