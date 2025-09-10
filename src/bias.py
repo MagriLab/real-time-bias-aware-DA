@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from src.ML_models.EchoStateNetwork import EchoStateNetwork
+from src.tools_ML.EchoStateNetwork import EchoStateNetwork
 from src.utils import interpolate
 import numpy as np
 from copy import deepcopy

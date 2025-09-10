@@ -75,7 +75,7 @@ Checkout the [Tutorials folder](https://github.com/andreanovoa/real-time-bias-aw
 │   ├── post_process/ 
 │   └── tutorials/ 
 ├── src/               # Source code including all the objects, classes and functions required in scripts
-│   ├── ML_models/
+│   ├── tools_ML/
 │   │   │── EchoStateNetwork.py
 │   │   └── POD.py
 │   ├── bias.py

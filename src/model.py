@@ -261,9 +261,16 @@ class Model:
             if method == 'uniform':
                 ensemble_ = np.array([ma * (1. + rng.uniform(-std, std, m)) for ma in mean])
             else:
-                ensemble_ = rng.multivariate_normal(mean, np.diag((mean * std) ** 2), m).T
+                # Handle complex mean
+                if np.iscomplexobj(mean):
+                    real_part = rng.multivariate_normal(mean.real, np.diag((mean.real * std) ** 2), m).T
+                    imag_part = rng.multivariate_normal(mean.imag, np.diag((mean.imag * std) ** 2), m).T
+                    ensemble_ = real_part + 1j * imag_part
+                else:
+                    ensemble_ = rng.multivariate_normal(mean, np.diag((mean * std) ** 2), m).T
         else:
             raise TypeError('std in normal distribution must be float not {}'.format(type(std)))
+
 
         if ensure_mean:
             ensemble_[:, 0] = mean
@@ -458,7 +465,11 @@ class Model:
 
                 if alpha is None:
                     alpha = self.get_alpha(psi_mean0)[0]
-                psi_mean = Model.__forecast(y0=psi_mean0[:, 0], fun=self.time_derivative, t=t, params={**alpha, **args})
+                psi_mean = Model.__forecast(y0=psi_mean0[:, 0], 
+                                            fun=self.time_derivative,
+                                            t=t,
+                                            params={**alpha, **args}
+                                            )
                 psi = [psi_mean + psi_deviation[:, ii] for ii in range(self.m)]
 
         # Rearrange dimensions to be Nt x N x m and remove initial condition

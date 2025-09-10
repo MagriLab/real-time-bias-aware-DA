@@ -1,7 +1,7 @@
 from src.model import *
 
-from src.ML_models.EchoStateNetwork import EchoStateNetwork
-from src.ML_models.POD import POD
+from src.tools_ML.EchoStateNetwork import EchoStateNetwork
+from src.tools_ML.POD import POD
 
 import matplotlib.backends.backend_pdf as plt_pdf
 from src.utils import interpolate, add_pdf_page, get_figsize_based_on_domain
@@ -162,8 +162,6 @@ class ESN_model(EchoStateNetwork, Model):
 
         self.M = None 
         # print(f'[ESN_model] after M.shape={self.M.shape}')
-
-        return 
     
 
     @property
