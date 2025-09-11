@@ -3,7 +3,7 @@ import os as os
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.pyplot as plt
-from src.models_datadriven import POD_ESN
+from dev.models_datadriven import POD_ESN
 from src.plot_results import plot_parameters
 
 

@@ -1,7 +1,7 @@
 import sys
 import os as os
 
-from src.models_datadriven import POD_ESN
+from dev.models_datadriven import POD_ESN
 from src.utils import set_working_directories, load_from_mat_file, add_noise_to_flow, save_to_mat_file, save_to_pickle_file, load_from_pickle_file, save_figs_to_pdf
 from src.plot_results import plot_truth, plot_ensemble, animate_flowfields
 from src.create import create_ensemble

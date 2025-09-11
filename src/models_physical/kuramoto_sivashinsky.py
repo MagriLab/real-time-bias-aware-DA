@@ -10,7 +10,7 @@ from src.model import Model
 class KS(Model):
 
     """
-    This class models the following equations:
+    This class models the Kuramoto-Sivashinsky  equation
 
 	u_t + u_xx + nu u_xxxx + u*u_x = 0 or u_t = - u_xx - nu u_xxxx - u*u_x
 	B.C.s : u(t,0) = u(t,L)
