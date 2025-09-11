@@ -1,8 +1,9 @@
 
-from src.tools_ML import POD
-from src.models_data_driven.esn import *
+from tools_ML import POD
+from models_data_driven import ESN_model
+from model import *
 
-from src.utils import *
+from utils import *
 
 
 class POD_ESN(ESN_model, POD):
@@ -10,10 +11,11 @@ class POD_ESN(ESN_model, POD):
         temporal coefficients.
 
         
-        D(x,t) = Σ_j σ_j φ_j(x) ψ_j(t)    for  j = 0, ..., N_modes-1
+        D(x,t) = Σ_j sigma_j φ_j(x) ψ_j(t)    for  j = 0, ..., N_modes-1
 
         [latex]
-        D(x,t) = \sum_j \sigma_j \phi_j(x) \psi_j(t) \quad \\text{for} \quad j = 0, \ldots, N_\mathrm{modes}-1
+        D(x,t) = \\sum_j \\sigma_j \\phi_j(x) \\psi_j(t) 
+        for j = 0, ..., N_modes-1
 
         POD properties:
             - Psi: temporal basis [N, N_modes], with N = Ndim x Nx x Ny

@@ -1,5 +1,5 @@
-from src.data_assimilation import dataAssimilation
-from src.create import *
+from data_assimilation import dataAssimilation
+from create import *
 import numpy as np
 
 rng = np.random.default_rng(6)

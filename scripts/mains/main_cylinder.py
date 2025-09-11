@@ -2,10 +2,10 @@ import sys
 import os as os
 
 from dev.models_datadriven import POD_ESN
-from src.utils import set_working_directories, load_from_mat_file, add_noise_to_flow, save_to_mat_file, save_to_pickle_file, load_from_pickle_file, save_figs_to_pdf
-from src.plot_results import plot_truth, plot_ensemble, animate_flowfields
-from src.create import create_ensemble
-from src.data_assimilation import dataAssimilation_bias_blind
+from utils import set_working_directories, load_from_mat_file, add_noise_to_flow, save_to_mat_file, save_to_pickle_file, load_from_pickle_file, save_figs_to_pdf
+from plot_results import plot_truth, plot_ensemble, animate_flowfields
+from create import create_ensemble
+from data_assimilation import dataAssimilation_bias_blind
 
 import numpy as np
 
@@ -333,7 +333,7 @@ if __name__ == '__main__':
     sys.stdout = sys.__stdout__
     print("This text appears in the terminal")
 
-    from src.post_processing.cylinder import plot_loop_Nt_obs
+    from post_processing.cylinder import plot_loop_Nt_obs
 
     plot_loop_Nt_obs(results_folder,
                     run_name=run_name,

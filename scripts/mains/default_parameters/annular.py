@@ -1,8 +1,8 @@
-from src.create import *
-from src.models_physical import *
-from src.utils import *
-from src.bias import *
-from src.plot_results import *
+from create import *
+from models_physical import *
+from utils import *
+from bias import *
+from plot_results import *
 from src.run import *
 # ============================================================================================== #
 

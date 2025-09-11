@@ -1,7 +1,7 @@
-from src.model import *
+from model import *
 
 from scipy.interpolate import splrep, splev
-from src.utils import Cheb
+from utils import Cheb
 
 
 # %% ==================================== RIJKE TUBE MODEL ============================================== %% #

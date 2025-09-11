@@ -1,7 +1,7 @@
-from src.model import *
-from src.tools_ML.EchoStateNetwork import EchoStateNetwork
+from model import *
+from tools_ML.EchoStateNetwork import EchoStateNetwork
 
-from src.utils import interpolate
+from utils import interpolate
 
 
 class ESN_model(EchoStateNetwork, Model):

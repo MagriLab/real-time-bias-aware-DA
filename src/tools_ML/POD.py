@@ -1,4 +1,4 @@
-from src.utils import save_figs_to_pdf, get_figsize_based_on_domain, crop_data_to_domain_of_interest
+from utils import save_figs_to_pdf, get_figsize_based_on_domain, crop_data_to_domain_of_interest
 from copy import deepcopy
 
 import numpy as np
@@ -111,10 +111,11 @@ class POD:
                 # Store new domain and the indices to the original dataset
                 Q = cropped_data.transpose(0, 2, 3, 1) # (Nu, Nx, Ny, Nt)
                 self.domain = domain_of_interest
-                self.grid_shape = Q.shape[:-1]
                 self.indices_to_original_grid = cropped_grid_indices
             else:
                 Q = X
+            # Store original shape of the dataset
+            self.grid_shape = Q.shape[:-1]
 
             # Concantenate all dimensions and remove the mean field
             Q = Q.reshape((-1, Q.shape[-1]))
@@ -344,16 +345,10 @@ class POD:
     
 
     @property
-    def domain_mesh(self, ravel=False):
+    def domain_mesh(self):
         """
         Generate a mesh grid for the given domain.
-
-        Args:
-            - domain: Tuple specifying the domain (x_min, x_max, y_min, y_max).
-            - grid_shape: The shape of the spatial grid.
-            - domain_of_interest: Optional subdomain to extract.
-            - down_sample: Downsampling factor (int or tuple).
-            - ravel: If True, returns flattened arrays.
+        
         Returns:
             - X1, X2: Mesh grid coordinates.
             - grid_idx_number: Indices corresponding to the grid.
@@ -366,10 +361,10 @@ class POD:
         # Calculate down sampled points
         X1, X2 = np.meshgrid(x1, x2, indexing='ij')
 
-        if ravel:
-            return X1.ravel(), X2.ravel()
-        else:
-            return X1, X2
+        # if ravel:
+        #     return X1.ravel(), X2.ravel()
+        # else:
+        return X1, X2
 
 
 
@@ -458,7 +453,7 @@ class POD:
 
         POD_modes = [Psi[dim_i] for dim_i in dim]
 
-        X1, X2 = case.domain_mesh()
+        X1, X2 = case.domain_mesh
 
         # n_col, n_row = calculate_subplot_grid(case.domain_of_interest, total_subplots=num_modes)
         figsize, n_col, n_row = get_figsize_based_on_domain(case.domain_of_interest, total_width=8, total_subplots=num_modes)
@@ -709,7 +704,7 @@ class POD:
             display_dims = [display_dims]
 
         nrows = len(display_dims)
-        X1, X2 = case.domain_mesh()
+        X1, X2 = case.domain_mesh
 
         if display_sensors and hasattr(case, 'sensor_locations'):
             X1_r, X2_r = X1.ravel(), X2.ravel()

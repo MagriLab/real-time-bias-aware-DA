@@ -1,6 +1,6 @@
 
 
-from src.model import *
+from model import *
 
 
 

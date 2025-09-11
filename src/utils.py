@@ -640,7 +640,7 @@ def get_error_metrics(results_folder):
 
 
 def create_Lorenz63_dataset(noise_level=0.02, num_lyap_times=300, seed=0, **kwargs):
-    from src.models_physical import Lorenz63
+    from models_physical import Lorenz63
     # Load or create training data from the Lorenz 63 model
     data_folder = set_working_directories('Lorenz/')[0]
 

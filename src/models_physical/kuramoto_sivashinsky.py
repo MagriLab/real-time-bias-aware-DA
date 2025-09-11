@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm as cm
 import warnings
 
-from src.model import Model
+from model import Model
 
 
 

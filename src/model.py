@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from src.bias import NoBias
+from bias import NoBias
 
 from sys import platform
 
@@ -245,6 +245,7 @@ class Model:
             psi0 = self.get_current_state()
 
         Model.__init__(self, psi0=psi0, **kwargs)
+
 
 
     @staticmethod

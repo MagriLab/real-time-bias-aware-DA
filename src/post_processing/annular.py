@@ -1,6 +1,6 @@
-from src.plot_results import *
-from src.utils import load_from_pickle_file
-from src.models_physical import Annular
+from plot_results import *
+from utils import load_from_pickle_file
+from models_physical import Annular
 import matplotlib.pyplot as plt
 
 def run_plotting_annular_results(m, rho,

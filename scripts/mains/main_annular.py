@@ -1,8 +1,8 @@
 from default_parameters.lorenz63 import bias_params
-from src.data_assimilation import *
-from src.create import *
-from src.bias import ESN
-from src.models_physical import Annular
+from data_assimilation import *
+from create import *
+from bias import ESN
+from models_physical import Annular
 from post_processing.annular import *
 
 # This code does not run without the Azimuthal data. Contact @andreanovoa for access this data.
