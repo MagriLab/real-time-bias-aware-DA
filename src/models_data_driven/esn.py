@@ -1,5 +1,9 @@
 from model import *
 from tools_ML.EchoStateNetwork import EchoStateNetwork
+import matplotlib.pyplot as plt
+import scipy.linalg as sla
+
+import inspect
 
 from utils import interpolate
 

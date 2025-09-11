@@ -348,7 +348,7 @@ class POD:
     def domain_mesh(self):
         """
         Generate a mesh grid for the given domain.
-        
+
         Returns:
             - X1, X2: Mesh grid coordinates.
             - grid_idx_number: Indices corresponding to the grid.
@@ -456,7 +456,7 @@ class POD:
         X1, X2 = case.domain_mesh
 
         # n_col, n_row = calculate_subplot_grid(case.domain_of_interest, total_subplots=num_modes)
-        figsize, n_col, n_row = get_figsize_based_on_domain(case.domain_of_interest, total_width=8, total_subplots=num_modes)
+        figsize, n_col, n_row = get_figsize_based_on_domain(case.domain, total_subplots=num_modes)
 
         for jj, data in enumerate(POD_modes):
             fig1 = plt.figure(figsize=figsize, layout='constrained')
@@ -734,16 +734,18 @@ class POD:
 
         ncols = len(_datasets)
 
-        figsize = get_figsize_based_on_domain(case.domain_of_interest, total_width=10, total_subplots=ncols*nrows)[0]
+        # figsize = get_figsize_based_on_domain(case.domain, total_width=ncols*1.5, total_subplots=ncols*nrows)[0]
+        # figsize = (ncols, nrows * )
 
-        sub_figs = plt.figure(figsize=figsize,
+
+        sub_figs = plt.figure(#figsize=figsize,
                               layout='constrained').subfigures(nrows=nrows, ncols=1)
 
         for jj, (fig, norm_f) in enumerate(zip(sub_figs if nrows > 1 else [sub_figs], norm_flow)):
             axs = fig.subplots(nrows=1, ncols=ncols, sharex=True, sharey=True)
             im_rms, im_flow = None, None
 
-            for ax, dataset, title, cmap in zip(axs, _datasets, _titles, _cmaps):
+            for kk, (ax, dataset, title, cmap) in enumerate(zip(axs, _datasets, _titles, _cmaps)):
 
                 # Assign the plot to the appropriate variable
                 if 'RMS' in title:
@@ -758,10 +760,10 @@ class POD:
                         ax.add_patch(mpl.patches.Rectangle((dom[0], dom[2]), dom[1] - dom[0], dom[3] - dom[2],
                                                            edgecolor='orange', facecolor='none', lw=3, ls='--'))
 
-                ax.set(ylabel='$x$', title=title if jj == 0 else None, xlabel='$y$' if jj > 0 else None)
+                ax.set(ylabel='$x$' if kk == 0 else None, title=title if jj == 0 else None, xlabel='$y$' if jj > 0 else None)
 
             # Add colorbars for flow and RMS plots
-            [fig.colorbar(im, ax=axs, shrink=0.5) for im in [im_rms, im_flow] if im]
+            [fig.colorbar(im, ax=axs, shrink=0.2) for im in [im_rms, im_flow] if im]
 
         if save:
             plt.savefig(f'{case.figs_folder}{case.name}_flows_rms.png', dpi=300)

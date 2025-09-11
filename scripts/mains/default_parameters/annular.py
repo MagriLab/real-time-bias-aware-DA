@@ -3,7 +3,7 @@ from models_physical import *
 from utils import *
 from bias import *
 from plot_results import *
-from src.run import *
+from run import *
 # ============================================================================================== #
 
 path_dir = os.path.realpath(__file__).split('main')[0]

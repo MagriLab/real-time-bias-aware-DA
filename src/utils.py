@@ -976,6 +976,47 @@ def get_figsize_based_on_domain(domain, total_subplots, max_cols=5, total_width=
 
 
 
+def get_cropped_indices(original_grid, 
+                        original_domain, 
+                        domain_of_interest, 
+                        down_sample=None):
+
+    # Extract original and DOI boundaries
+    Nx, Ny = original_grid
+    x_min, x_max, y_min, y_max = original_domain
+    doi_x_min, doi_x_max, doi_y_min, doi_y_max = domain_of_interest
+
+    # Generate 1D spatial grids for original domain
+    x = np.linspace(x_min, x_max, Nx)
+    y = np.linspace(y_min, y_max, Ny)
+
+    # Find indices within domain_of_interest along each axis
+    x_idx = np.where((x >= doi_x_min) & (x <= doi_x_max))[0]
+    y_idx = np.where((y >= doi_y_min) & (y <= doi_y_max))[0]
+
+
+    if len(x_idx) == 0 or len(y_idx) == 0:
+        raise ValueError('Domain of interest does not overlap with original domain grid.')
+
+
+    if down_sample is not None:
+        if isinstance(down_sample, int):
+            down_sample = [down_sample]
+        if len(down_sample) == 1:
+            step_x = step_y = down_sample[0]
+        elif len(down_sample) == 2:
+            step_x, step_y = down_sample
+        else:
+            raise AssertionError(f'Too many downsample entries: {down_sample}')
+
+        x_idx = x_idx[::step_x]
+        y_idx = y_idx[::step_y]
+
+
+    return np.ix_(x_idx, y_idx)
+
+
+
 
 def crop_data_to_domain_of_interest(data,
                                     original_domain: 'list | tuple',
@@ -999,39 +1040,43 @@ def crop_data_to_domain_of_interest(data,
         else:
             raise ValueError(f'data input shape must be [(Nu, Nt) x Nx x Ny], got {data.shape}')
 
-        # Extract original and DOI boundaries
-        Nx, Ny = original_grid
-        x_min, x_max, y_min, y_max = original_domain
-        doi_x_min, doi_x_max, doi_y_min, doi_y_max = domain_of_interest
+        # # Extract original and DOI boundaries
+        # Nx, Ny = original_grid
+        # x_min, x_max, y_min, y_max = original_domain
+        # doi_x_min, doi_x_max, doi_y_min, doi_y_max = domain_of_interest
 
-        # Generate 1D spatial grids for original domain
-        x = np.linspace(x_min, x_max, Nx)
-        y = np.linspace(y_min, y_max, Ny)
+        # # Generate 1D spatial grids for original domain
+        # x = np.linspace(x_min, x_max, Nx)
+        # y = np.linspace(y_min, y_max, Ny)
 
-        # Find indices within domain_of_interest along each axis
-        x_idx = np.where((x >= doi_x_min) & (x <= doi_x_max))[0]
-        y_idx = np.where((y >= doi_y_min) & (y <= doi_y_max))[0]
-
-
-        if len(x_idx) == 0 or len(y_idx) == 0:
-            raise ValueError('Domain of interest does not overlap with original domain grid.')
+        # # Find indices within domain_of_interest along each axis
+        # x_idx = np.where((x >= doi_x_min) & (x <= doi_x_max))[0]
+        # y_idx = np.where((y >= doi_y_min) & (y <= doi_y_max))[0]
 
 
-        if down_sample is not None:
-            if isinstance(down_sample, int):
-                down_sample = [down_sample]
-            if len(down_sample) == 1:
-                step_x = step_y = down_sample[0]
-            elif len(down_sample) == 2:
-                step_x, step_y = down_sample
-            else:
-                raise AssertionError(f'Too many downsample entries: {down_sample}')
-
-            x_idx = x_idx[::step_x]
-            y_idx = y_idx[::step_y]
+        # if len(x_idx) == 0 or len(y_idx) == 0:
+        #     raise ValueError('Domain of interest does not overlap with original domain grid.')
 
 
-        cropped_grid_indices = np.ix_(x_idx, y_idx)
+        # if down_sample is not None:
+        #     if isinstance(down_sample, int):
+        #         down_sample = [down_sample]
+        #     if len(down_sample) == 1:
+        #         step_x = step_y = down_sample[0]
+        #     elif len(down_sample) == 2:
+        #         step_x, step_y = down_sample
+        #     else:
+        #         raise AssertionError(f'Too many downsample entries: {down_sample}')
+
+        #     x_idx = x_idx[::step_x]
+        #     y_idx = y_idx[::step_y]
+
+
+        # cropped_grid_indices = np.ix_(x_idx, y_idx)
+
+        cropped_grid_indices = get_cropped_indices(original_grid, original_domain, 
+                                                   domain_of_interest, down_sample)
+
         data_cropped = data[..., cropped_grid_indices[0], cropped_grid_indices[1]].copy()
 
         if visualize:

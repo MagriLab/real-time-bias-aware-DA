@@ -2,7 +2,7 @@ from bias import *
 from create import *
 from models_physical import *
 from plot_results import *
-from src.run import *
+from run import *
 from utils import *
 
 

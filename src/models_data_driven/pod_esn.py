@@ -2,7 +2,7 @@
 from tools_ML import POD
 from models_data_driven import ESN_model
 from model import *
-
+import scipy.linalg as sla
 from utils import *
 
 
@@ -209,7 +209,7 @@ class POD_ESN(ESN_model, POD):
     @domain_of_measurement.setter
     def domain_of_measurement(self, dom):
         if dom is None:
-            dom = self.domain_of_interest
+            dom = self.domain
         self._domain_of_measurement = dom
 
     @property
@@ -221,26 +221,65 @@ class POD_ESN(ESN_model, POD):
     
     @down_sample_measurement.setter
     def down_sample_measurement(self, dsm):
-        if dsm is None:
-            dsm = self.down_sample.copy()
-        elif isinstance(dsm, int):
-            dsm = [dsm, dsm]
-        elif self.down_sample is not None:
-            dsm = [int(x / y) for x, y in zip(dsm, self.down_sample)]
-
-        # print(f'_down_sample_measurement set to {dsm}')
+        if dsm is not None:
+            if isinstance(dsm, int):
+                dsm = [dsm, dsm]
+            elif self.down_sample is not None:
+                dsm = [int(x / y) for x, y in zip(dsm, self.down_sample)]
+            else:
+                raise ValueError()
 
         self._down_sample_measurement = dsm
+
+    @property
+    def grid_of_measurement(self):
+
+
+        Nx, Ny = self.grid_shape[1:]
+
+        if self.domain == self.domain_of_measurement:
+            x_idx = np.arange(Nx)
+            y_idx = np.arange(Ny)
+        else:
+            x_min, x_max, y_min, y_max = self.domain
+            doi_x_min, doi_x_max, doi_y_min, doi_y_max = self.domain_of_measurement
+
+            # Generate 1D spatial grids for original domain
+            x = np.linspace(x_min, x_max, Nx)
+            y = np.linspace(y_min, y_max, Ny)
+
+            # Find indices within domain_of_interest along each axis
+            x_idx = np.where((x >= doi_x_min) & (x <= doi_x_max))[0]
+            y_idx = np.where((y >= doi_y_min) & (y <= doi_y_max))[0]
+
+
+        if len(x_idx) == 0 or len(y_idx) == 0:
+            raise ValueError('Domain of interest does not overlap with original domain grid.')
+
+        down_sample = self.down_sample_measurement
+        if down_sample is not None:
+            step_x, step_y = down_sample
+            x_idx = x_idx[::step_x]
+            y_idx = y_idx[::step_y]
+
+
+        return np.ix_(x_idx, y_idx)
+
 
 
     def define_sensors(self, N_sensors=None):
 
         # Define the measurement grid
-        grid_idx = POD.domain_mesh(domain=self.domain, 
-                                   grid_shape=self.grid_shape,
-                                   domain_of_interest=self.domain_of_measurement,
-                                   down_sample=self.down_sample_measurement,
-                                   ravel=True)[-1]
+        # grid_idx = POD.domain_mesh(domain=self.domain, 
+        #                            grid_shape=self.grid_shape,
+        #                            domain_of_interest=self.domain_of_measurement,
+        #                            down_sample=self.down_sample_measurement,
+        #                            ravel=True)[-1]
+        
+        Nx, Ny = self.grid_shape[1:]  # get spatial dims shape
+        grid_idx = np.ravel_multi_index(self.grid_of_measurement, dims=(Nx, Ny))
+
+        # grid_idx = self.grid_of_measurement.ravel()
 
         # Select a number N_sensors of the grid wither randomly or according to qr =selection scheme
         if N_sensors is None:
@@ -248,14 +287,11 @@ class POD_ESN(ESN_model, POD):
 
         if self.qr_selection:
             dom = self.Psi[grid_idx]
-            # t1 = time.time()
             qr_idx = sla.qr(dom.T, pivoting=True)[-1]
-            # print('qr decomposition time :', time.time() - t1)
             idx = grid_idx[qr_idx[:N_sensors]]
         else:
-            rng = self.rng
             if N_sensors < len(grid_idx):
-                idx = np.sort(rng.choice(grid_idx, size=N_sensors, replace=False), axis=None)
+                idx = np.sort(self.rng.choice(grid_idx, size=N_sensors, replace=False), axis=None)
             else:
                 idx = grid_idx.copy()
 
