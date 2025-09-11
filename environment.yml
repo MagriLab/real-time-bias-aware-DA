@@ -26,3 +26,4 @@ dependencies:
     - ipython-genutils~=0.2
     - modulo-vki==2.1
     - pyqt5~=5.15
+    - -e .

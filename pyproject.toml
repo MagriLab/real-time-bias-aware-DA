@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "real-time-DA"
+version = "2.1"
+description = "Real-time Bias-Aware Data Assimilation"
+authors = [
+  {name = "Andrea Nóvoa", email = "a.novoa@imperial.ac.uk"}
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
