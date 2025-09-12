@@ -5,7 +5,7 @@ from bias import ESN
 from models_physical import Annular
 from post_processing.annular import *
 
-# This code does not run without the Azimuthal data. Contact @andreanovoa for access this data.
+# This code does not run without the Azimuthal data. The dataset can be downloaded from https://zenodo.org/records/15609832
 
 name = 'simulation_output_all_new'
 ERs = 0.4875 + np.arange(0, 4) * 0.025

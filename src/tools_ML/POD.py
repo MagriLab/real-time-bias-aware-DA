@@ -477,6 +477,8 @@ class POD:
 
                 ax.set_title(f'mode {kk}', fontsize='xx-small')
 
+                ax.set_aspect('equal')
+
             fig1.colorbar(mappable=im0, ax=axs, shrink=0.5, aspect=20)
 
 
@@ -716,7 +718,7 @@ class POD:
 
         # Prepare data titles and cmaps to plot
         _datasets = [reconstructed_data]
-        _titles = [f'POD reconstruct {case.N_modes} modes']
+        _titles = [f'POD {case.N_modes} modes']
         _cmaps = [cmap_flow]
 
         for ii, dataset, name in zip(range(len(datasets)), datasets, names or [None] * len(datasets)):
@@ -734,11 +736,11 @@ class POD:
 
         ncols = len(_datasets)
 
-        # figsize = get_figsize_based_on_domain(case.domain, total_width=ncols*1.5, total_subplots=ncols*nrows)[0]
+        figsize = get_figsize_based_on_domain(case.domain, total_subplots=ncols*nrows)[0]
         # figsize = (ncols, nrows * )
 
 
-        sub_figs = plt.figure(#figsize=figsize,
+        sub_figs = plt.figure(figsize=figsize,
                               layout='constrained').subfigures(nrows=nrows, ncols=1)
 
         for jj, (fig, norm_f) in enumerate(zip(sub_figs if nrows > 1 else [sub_figs], norm_flow)):
@@ -762,8 +764,10 @@ class POD:
 
                 ax.set(ylabel='$x$' if kk == 0 else None, title=title if jj == 0 else None, xlabel='$y$' if jj > 0 else None)
 
+                ax.set_aspect('equal')
+
             # Add colorbars for flow and RMS plots
-            [fig.colorbar(im, ax=axs, shrink=0.2) for im in [im_rms, im_flow] if im]
+            [fig.colorbar(im, ax=axs, shrink=0.5) for im in [im_rms, im_flow] if im]
 
         if save:
             plt.savefig(f'{case.figs_folder}{case.name}_flows_rms.png', dpi=300)

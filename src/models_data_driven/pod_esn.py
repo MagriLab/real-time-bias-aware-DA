@@ -97,7 +97,7 @@ class POD_ESN(ESN_model, POD):
             # If the sensors are already defined, use them
             self.Nq = len(self.sensor_locations)
 
-
+        print(f'Nq={self.Nq}')
 
         if plot_case:
             POD.plot_POD_modes(case=self, num_modes=self.N_modes, cmap='viridis')
@@ -277,7 +277,7 @@ class POD_ESN(ESN_model, POD):
         #                            ravel=True)[-1]
         
         Nx, Ny = self.grid_shape[1:]  # get spatial dims shape
-        grid_idx = np.ravel_multi_index(self.grid_of_measurement, dims=(Nx, Ny))
+        grid_idx = np.ravel_multi_index(self.grid_of_measurement, dims=(Nx, Ny)).ravel()
 
         # grid_idx = self.grid_of_measurement.ravel()
 
@@ -389,6 +389,7 @@ class POD_ESN(ESN_model, POD):
                                                label="Domain of measurement", zorder=-10)
 
                 ax.add_patch(square)
+            ax.set_aspect('equal')
 
             if down_sampled:
                 ax.plot(X1.ravel()[grid_idx_m], X2.ravel()[grid_idx_m], 'x', color='w', ms=5,

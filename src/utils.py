@@ -36,6 +36,42 @@ rng = np.random.default_rng(6)
 
 
 
+def set_cylinder_truth(case, X_filter, X_filter_true, Nt_obs = 25, visualize=False):
+    N_test = X_filter.shape[-1]
+
+    if case.sensor_locations is not None:
+        data_obs = X_filter.copy().reshape(-1, N_test)[case.sensor_locations].T
+        data_obs_true = X_filter_true.copy().reshape(-1, N_test)[case.sensor_locations].T
+    else:
+        data_obs = case.project_data_onto_Psi(data=X_filter)
+        data_obs_true = case.project_data_onto_Psi(data=X_filter_true)
+
+    dt = case.dt
+    t_true = np.arange(0, N_test)  * dt
+
+    t_start = .5
+    t_stop = min(5., t_true[-10])
+    
+
+    obs_idx = np.arange(t_start // dt, t_stop // dt + 1, Nt_obs, dtype=int) + 1
+
+
+    # Nt_extra = len(t_true[obs_idx[-1]:])
+
+    _truth = dict(y_raw=data_obs,
+                  y_true=data_obs_true, 
+                  t=t_true, 
+                  dt=dt,
+                  t_obs=t_true[obs_idx], 
+                  y_obs=data_obs[obs_idx], 
+                  dt_obs=Nt_obs * dt,
+                  Nt_extra=int(case.t_CR // case.dt),
+                  )
+    
+    return _truth
+
+
+
 def add_noise_to_flow(U, V, noise_level=0.05, noise_type="gauss", spatial_smooth=0):
     """
     Adds noise to a 3D velocity field (Nt x Nx x Ny).
@@ -798,7 +834,7 @@ def get_wake_data(data_folder=None, case='circle_re_100'):
 
 
 def load_cylinder_dataset(noise_type = 'gauss', noise_level = 0.1, smoothing = 0.1, 
-                          root_folder= None, visualize=False):
+                          root_folder='.', visualize=False):
 
     data_folder, results_folder = set_working_directories('wakes/', root=root_folder)[:2]
 
@@ -840,7 +876,6 @@ def load_cylinder_dataset(noise_type = 'gauss', noise_level = 0.1, smoothing = 0
                                          all_data_noisy=all_data_noisy))
     else:
         dataset = load_from_mat_file(data_name)
-        print(dataset.keys())
         all_data, all_data_noisy = [dataset[key] for key in ['all_data', 'all_data_noisy']]
 
     if visualize:

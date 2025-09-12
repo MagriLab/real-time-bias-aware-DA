@@ -1,19 +1,14 @@
 import sys
 import os as os
 
-from dev.models_datadriven import POD_ESN
-from utils import set_working_directories, load_from_mat_file, add_noise_to_flow, save_to_mat_file, save_to_pickle_file, load_from_pickle_file, save_figs_to_pdf
-from plot_results import plot_truth, plot_ensemble, animate_flowfields
+from models_data_driven import POD_ESN
+from utils import set_working_directories, set_cylinder_truth, load_cylinder_dataset, save_to_pickle_file, load_from_pickle_file, save_figs_to_pdf
+from plot_results import plot_ensemble, plot_timeseries
+from post_processing.cylinder import animate_flowfields
 from create import create_ensemble
 from data_assimilation import dataAssimilation_bias_blind
 
-import numpy as np
-
 from matplotlib import pyplot as plt
-from matplotlib.animation import FuncAnimation
-from IPython.display import display, Image
-
-import time
 
 
 # Define woking directories
@@ -21,128 +16,38 @@ data_folder, results_folder = set_working_directories('wakes')[:2]
 
 
 
+# def plot_timeseries(*plot_cases, zoom_window=None, add_pdf=False, t_factor=1):
+#     """
+#     Plot the time evolution of the observables in a object of class model
+#     """
 
-def plot_timeseries(*plot_cases, zoom_window=None, add_pdf=False, t_factor=1):
-    """
-    Plot the time evolution of the observables in a object of class model
-    """
+#     fig = plt.figure(figsize=(10, 4.5), layout="constrained")
+#     axs = fig.subplots(plot_cases[0].Nq, 2 + add_pdf, sharey='row', sharex='col')
+#     xlabel = '$t$'
+#     if t_factor != 1:
+#         xlabel += '$/T$'
 
-    fig = plt.figure(figsize=(10, 4.5), layout="constrained")
-    axs = fig.subplots(plot_cases[0].Nq, 2 + add_pdf, sharey='row', sharex='col')
-    xlabel = '$t$'
-    if t_factor != 1:
-        xlabel += '$/T$'
+#     for plot_case in plot_cases:
+#         y = plot_case.get_observable_hist()  # history of the model observables
+#         lbl = plot_case.obs_labels
 
-    for plot_case in plot_cases:
-        y = plot_case.get_observable_hist()  # history of the model observables
-        lbl = plot_case.obs_labels
+#         t_h = plot_case.hist_t / t_factor
+#         if zoom_window is None:
+#             zoom_window = [t_h[-1] - plot_case.t_CR, t_h[-1]]
 
-        t_h = plot_case.hist_t / t_factor
-        if zoom_window is None:
-            zoom_window = [t_h[-1] - plot_case.t_CR, t_h[-1]]
+#         for ii, ax in enumerate(axs):
+#             [ax[jj].plot(t_h, y[:, ii]) for jj in range(2)]
+#             ax[0].set(ylabel=lbl[ii])
+#             if add_pdf:
+#                 ax[2].hist(y[:, ii], alpha=0.5, histtype='stepfilled', bins=20, density=True, orientation='horizontal',
+#                            stacked=False)
 
-        for ii, ax in enumerate(axs):
-            [ax[jj].plot(t_h, y[:, ii]) for jj in range(2)]
-            ax[0].set(ylabel=lbl[ii])
-            if add_pdf:
-                ax[2].hist(y[:, ii], alpha=0.5, histtype='stepfilled', bins=20, density=True, orientation='horizontal',
-                           stacked=False)
+#         axs[-1][0].set(xlabel=xlabel, xlim=[t_h[0], t_h[-1]])
+#         axs[-1][1].set(xlabel=xlabel, xlim=zoom_window)
+#         if plot_case.ensemble:
+#             plt.gcf().legend([f'$mi={mi}$' for mi in range(plot_case.m)], loc='center left', bbox_to_anchor=(1.0, .75),
+#                              ncol=1, frameon=False)
 
-        axs[-1][0].set(xlabel=xlabel, xlim=[t_h[0], t_h[-1]])
-        axs[-1][1].set(xlabel=xlabel, xlim=zoom_window)
-        if plot_case.ensemble:
-            plt.gcf().legend([f'$mi={mi}$' for mi in range(plot_case.m)], loc='center left', bbox_to_anchor=(1.0, .75),
-                             ncol=1, frameon=False)
-
-
-
-def load_cylinder_dataset(noise_type = 'gauss', noise_level = 0.1, smoothing = 0.1, display_flow=False):
-
-    dir = f'/data_noise{noise_level}{noise_type}_smoothing{smoothing}/'
-
-
-    os.makedirs(results_folder+dir, exist_ok=True)
-
-    data_name = results_folder+f'{dir}00_data.mat'
-
-    if not os.path.exists(data_name):
-
-        # Load dataset
-        mat = load_from_mat_file(data_folder + 'circle_re_100.mat')
-
-        U, V = [mat[key] for key in ['ux', 'uy']]  # Nu, Nt, Ny, Nx 
-        U[np.isnan(U)] = 0.
-        V[np.isnan(V)] = 0.
-
-        U_noisy, V_noisy = add_noise_to_flow(U, V, 
-                                            noise_level=noise_level, 
-                                            noise_type=noise_type, 
-                                            spatial_smooth=smoothing)
-
-        gif_name = results_folder+f'{dir}00_data.gif'
-
-        # Visualize the flow fields
-        if not os.path.exists(gif_name):
-            anim = animate_flowfields([U, U_noisy, V, V_noisy], 
-                                    titles=['$u_x$', '$u_y$', '$\\tilde{u}_x$', '$\\tilde{u}_y$'], n_frames=50)
-            anim.save(gif_name)
-
-        # Display in notebook
-        if display_flow:
-            display(Image(filename=gif_name))
-
-        all_data = np.array([U, V])                     # Nu, Nt, Ny, Nx
-        all_data_noisy = np.array([U_noisy, V_noisy])   # Nu, Nt, Ny, Nx
-
-        #  Change order of dimensions
-        all_data = all_data.transpose(1, 2, 3, 0)               # Nt, Nx, Ny, Nu
-        all_data_noisy = all_data_noisy.transpose(1, 2, 3, 0)   # Nt, Nx, Ny, Nu
-
-        save_to_mat_file(data_name, dict(all_data=all_data,
-                                         all_data_noisy=all_data_noisy))
-    else:
-        dataset = load_from_mat_file(data_name)
-        all_data, all_data_noisy = [dataset[key] for key in ['all_data', 'all_data_noisy']]
-
-    return all_data, all_data_noisy, dir
-
-
-def set_truth(case, X_filter, X_filter_true, Nt_obs = 25, plot=False):
-
-
-    N_test = X_filter.shape[-1]
-
-    if case.sensor_locations is not None:
-        data_obs = X_filter.copy().reshape(-1, N_test)[case.sensor_locations].T
-        data_obs_true = X_filter_true.copy().reshape(-1, N_test)[case.sensor_locations].T
-    else:
-        data_obs = case.project_data_onto_Psi(data=X_filter)
-        data_obs_true = case.project_data_onto_Psi(data=X_filter_true)
-
-    dt = case.dt
-    t_true = np.arange(0, N_test)  * dt
-
-    t_start = .5
-    t_stop = min(5., t_true[-10])
-    
-
-    obs_idx = np.arange(t_start // dt, t_stop // dt + 1, Nt_obs, dtype=int) + 1
-
-
-    Nt_extra = len(t_true[obs_idx[-1]:])
-
-    _truth = dict(y_raw=data_obs,
-                  y_true=data_obs_true, 
-                  t=t_true, 
-                  dt=dt,
-                  t_obs=t_true[obs_idx], 
-                  y_obs=data_obs[obs_idx], 
-                  dt_obs=Nt_obs * dt,
-                  Nt_extra=Nt_extra
-                  )
-    if plot:
-        plot_truth(**_truth)
-    return _truth
 
 
 def load_POD_ESN_case(folder, N_modes=4, N_units=40):
@@ -173,6 +78,7 @@ def load_POD_ESN_case(folder, N_modes=4, N_units=40):
         save_to_pickle_file(case_filename, _case)
 
     return _case
+
 
 
 def plot_initial_case(case, name='case'):
@@ -272,7 +178,7 @@ if __name__ == '__main__':
             figs_folder = loop_folder + f'Nt_obs_{nt_obs}/'
             os.makedirs(figs_folder, exist_ok=True)
 
-            truth = set_truth(case=model,  X_filter=X_filter, X_filter_true=X_filter_true, Nt_obs=nt_obs)
+            truth = set_cylinder_truth(case=model,  X_filter=X_filter, X_filter_true=X_filter_true, Nt_obs=nt_obs)
 
 
             #  ************************************************************************************************************************  #
