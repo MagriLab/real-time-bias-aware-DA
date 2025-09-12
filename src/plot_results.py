@@ -4,7 +4,7 @@ import numpy as np
 import scipy.ndimage as ndimage
 from scipy.interpolate import interp2d
 from tabulate import tabulate
-from src.utils import interpolate, fun_PSD, categorical_cmap, CR, get_error_metrics
+from utils import interpolate, fun_PSD, categorical_cmap, CR, get_error_metrics
 
 
 import matplotlib.pyplot as plt
@@ -550,7 +550,7 @@ def post_process_WhyAugment(results_dir, k_plot=None, J_plot=None, figs_dir=None
 
 
 def plot_annular_model(forecast_params=None, animate=False, anim_name=None):
-    from src.models_physical import Annular
+    from models_physical import Annular
     import datetime
     import time
 

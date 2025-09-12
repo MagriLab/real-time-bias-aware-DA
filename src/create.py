@@ -1,9 +1,9 @@
 import os.path
 
 import numpy as np
-from src.utils import *
-from src.bias import *
-from src.model import Model
+from utils import *
+from bias import *
+from model import Model
 
 
 rng = np.random.default_rng(0)

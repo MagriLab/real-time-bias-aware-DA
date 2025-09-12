@@ -3,23 +3,23 @@ import os as os
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.pyplot as plt
-from src.models_datadriven import POD_ESN
-from src.plot_results import plot_parameters
+from models_data_driven import POD_ESN
+from plot_results import plot_parameters
 
 
 path = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(path, '..')))
 
 
-from src.utils import load_from_pickle_file, set_working_directories, interpolate, save_figs_to_pdf
+from utils import load_from_pickle_file, set_working_directories, interpolate, save_figs_to_pdf
 
 # results_folder = set_working_directories('wakes')[1]  
 
 
-from src.plot_results import *
+from plot_results import *
 
 
-from src.utils import  load_from_pickle_file, save_to_pickle_file
+from utils import  load_from_pickle_file, save_to_pickle_file
 
 
 def plot_timeseries(filter_ens, truth, 

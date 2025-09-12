@@ -42,22 +42,23 @@ Checkout the [Tutorials folder](https://github.com/andreanovoa/real-time-bias-aw
 
 
 ## 🌟 What is available?
-   Data assimilation methods [`src.data_assimilation`](https://github.com/andreanovoa/real-time-bias-aware-DA/blob/main/src/DA.py)
+   Data assimilation methods [`data_assimilation`](https://github.com/andreanovoa/real-time-bias-aware-DA/blob/main/src/data_assimilation.py)
    * EnKF - ensemble Kalman filter
    * EnSRKF - ensemble square-root Kalman filter
    * rBA-EnKF - regularized bias-aware EnKF
    
-   Physical models [`src.models_physical`](https://github.com/andreanovoa/real-time-bias-aware-DA/blob/main/src/models_physical.py)
+   Physical models [`models_physical`](https://github.com/andreanovoa/real-time-bias-aware-DA/blob/main/src/models_physical)
    * Rijke tube model (dimensional with Galerkin projection)
    * Van der Pols
    * Lorenz63
    * Azimuthal thermoaocustics model
+   * Kuramoto-Sivashinsky equation
    
-   Data-driven models [`src.models_datadriven`](https://github.com/andreanovoa/real-time-bias-aware-DA/blob/main/src/models_datadriven.py)
+   Data-driven models [`models_data_driven`](https://github.com/andreanovoa/real-time-bias-aware-DA/blob/main/essentials/models_data_driven)
    * ESN_model -- Echo state network as a frorecasting tool
    * POD-ESN -- Combines Proper Orthogonal Decomposition (POD) and ESN_model
     
-   Bias estimators[`src.bias`](https://github.com/andreanovoa/real-time-bias-aware-DA/blob/main/src/bias.py)
+   Bias estimators[`bias`](https://github.com/andreanovoa/real-time-bias-aware-DA/blob/main/src/bias.py)
    * Echo State Network
    * NoBias
 
@@ -75,21 +76,28 @@ Checkout the [Tutorials folder](https://github.com/andreanovoa/real-time-bias-aw
 │   ├── post_process/ 
 │   └── tutorials/ 
 ├── src/               # Source code including all the objects, classes and functions required in scripts
-│   ├── ML_models/
-│   │   │── EchoStateNetwork.py
-│   │   └── POD.py
 │   ├── bias.py
 │   ├── create.py   
-│   ├── DA.py
+│   ├── data_assimilation.py
 │   ├── model.py
-│   ├── models_datadriven.py
-│   ├── models_physics.py
+│   ├── models_datadriven
+│   │   │── EchoStateNetwork.py
+│   │   └── POD.py
+│   ├── models_physical
+│   │   │── annular.py
+│   │   │── kuramoto_sivashinsky.py
+│   │   │── lorenz63.py
+│   │   │── rijke.py
+│   │   └── van_der_pol.py
 │   ├── plot_fns.py
 │   ├── run.py
+│   ├── tools_ML/
+│   │   │── EchoStateNetwork.py
+│   │   └── POD.py
 │   └── util.py
 ├─ tests_tutorials.py    # Unit tests
 ├─ environment.yml       # Conda environment definition
-├─ setup.py              # Python package setup
+├─ pyproject.toml        # Python package setup
 └─ README.md             # This file
 
 ```

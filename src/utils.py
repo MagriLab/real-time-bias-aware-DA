@@ -36,6 +36,42 @@ rng = np.random.default_rng(6)
 
 
 
+def set_cylinder_truth(case, X_filter, X_filter_true, Nt_obs = 25, visualize=False):
+    N_test = X_filter.shape[-1]
+
+    if case.sensor_locations is not None:
+        data_obs = X_filter.copy().reshape(-1, N_test)[case.sensor_locations].T
+        data_obs_true = X_filter_true.copy().reshape(-1, N_test)[case.sensor_locations].T
+    else:
+        data_obs = case.project_data_onto_Psi(data=X_filter)
+        data_obs_true = case.project_data_onto_Psi(data=X_filter_true)
+
+    dt = case.dt
+    t_true = np.arange(0, N_test)  * dt
+
+    t_start = .5
+    t_stop = min(5., t_true[-10])
+    
+
+    obs_idx = np.arange(t_start // dt, t_stop // dt + 1, Nt_obs, dtype=int) + 1
+
+
+    # Nt_extra = len(t_true[obs_idx[-1]:])
+
+    _truth = dict(y_raw=data_obs,
+                  y_true=data_obs_true, 
+                  t=t_true, 
+                  dt=dt,
+                  t_obs=t_true[obs_idx], 
+                  y_obs=data_obs[obs_idx], 
+                  dt_obs=Nt_obs * dt,
+                  Nt_extra=int(case.t_CR // case.dt),
+                  )
+    
+    return _truth
+
+
+
 def add_noise_to_flow(U, V, noise_level=0.05, noise_type="gauss", spatial_smooth=0):
     """
     Adds noise to a 3D velocity field (Nt x Nx x Ny).
@@ -102,30 +138,58 @@ def add_noise_to_flow(U, V, noise_level=0.05, noise_type="gauss", spatial_smooth
 
 
 
-def set_working_directories(subfolder='', root=None):
+def find_first_ascending_folder(start_dir, target_names):
+    """
+    Ascends from start_dir looking for any of the target_names folders.
+    Returns (parent_path, found_folder), or (None, None) if not found.
+
+    # Usage Example:
+    parent, found = find_first_ascending_folder('.', ['src', 'dev'])
+    if parent:
+        print(f"Found {found} in {parent}")
+    """
+    dir_path = os.path.abspath(start_dir)
+    while True:
+        existing = [name for name in target_names if name in os.listdir(dir_path)]
+        if existing:
+            return dir_path, existing
+        parent = os.path.dirname(dir_path)
+        if parent == dir_path:
+            return None, False
+        dir_path = parent
+
+
+
+
+def set_working_directories(subfolder='', root='.'):
     if subfolder[-1] != '/':
         subfolder += '/'
 
     
     tutorial = 'tutorials' in os.getcwd()
 
-    def find_root(start_dir):
-        dir_path = os.path.abspath(start_dir)
-        while True:
-            if 'src' in os.listdir(dir_path) and 'scripts' in os.listdir(dir_path):
-                return dir_path
-            parent = os.path.dirname(dir_path)
-            if parent == dir_path:  # Reached system root
-                return None
-            dir_path = parent
+    # def find_root(start_dir):
+    #     dir_path = os.path.abspath(start_dir)
+    #     while True:
+    #         if 'src' in os.listdir(dir_path) and 'scripts' in os.listdir(dir_path):
+    #             return dir_path
+    #         parent = os.path.dirname(dir_path)
+    #         if parent == dir_path:  # Reached system root
+    #             return None
+    #         dir_path = parent
+    # # Find the project root directory
+    # if root is not None:
+    #     project_root = root
+    # else:
 
     # Find the project root directory
-    if root is not None:
-        project_root = root
-    else:
-        # Find the project root directory
-        project_root = find_root(os.getcwd()) 
-    if project_root is None:
+    # if root is None:
+    project_root, found = find_first_ascending_folder(root, ['src', 'dev']) 
+    if found[0] == 'dev':
+        project_root = os.path.join(project_root, 'real_public')
+        print('On dev folder, root=' , project_root)
+        
+    elif not found:
         raise FileNotFoundError("Project root directory not found. Ensure you are in the correct directory structure.")
 
     #  Set results and fgures folders
@@ -137,19 +201,7 @@ def set_working_directories(subfolder='', root=None):
         figs_folder = os.path.join(project_root, 'results/figs', subfolder)
 
     #  Set data folder. Note: some data is not provided in the repository.  
-    # if os.path.isdir('/Users/andreanovoa'):
-    #     data_folder = os.path.join('/Users/andreanovoa', 'data', subfolder)
-    # elif os.path.isdir('/Users/anovoama/'):
-    #     data_folder = os.path.join('/Users/anovoama', 'data', subfolder)
-    # else:
     data_folder = os.path.join(project_root, 'data', subfolder)
-
-
-
-    # # Check data folder exists
-    # if not os.path.isdir(data_folder):
-    #     raise FileNotFoundError(f"Data folder {data_folder} does not exist.")
-
 
     return data_folder, results_folder, figs_folder
 
@@ -624,7 +676,7 @@ def get_error_metrics(results_folder):
 
 
 def create_Lorenz63_dataset(noise_level=0.02, num_lyap_times=300, seed=0, **kwargs):
-    from src.models_physical import Lorenz63
+    from models_physical import Lorenz63
     # Load or create training data from the Lorenz 63 model
     data_folder = set_working_directories('Lorenz/')[0]
 
@@ -782,7 +834,7 @@ def get_wake_data(data_folder=None, case='circle_re_100'):
 
 
 def load_cylinder_dataset(noise_type = 'gauss', noise_level = 0.1, smoothing = 0.1, 
-                          root_folder= None, visualize=False):
+                          root_folder='.', visualize=False):
 
     data_folder, results_folder = set_working_directories('wakes/', root=root_folder)[:2]
 
@@ -824,7 +876,6 @@ def load_cylinder_dataset(noise_type = 'gauss', noise_level = 0.1, smoothing = 0
                                          all_data_noisy=all_data_noisy))
     else:
         dataset = load_from_mat_file(data_name)
-        print(dataset.keys())
         all_data, all_data_noisy = [dataset[key] for key in ['all_data', 'all_data_noisy']]
 
     if visualize:
@@ -864,30 +915,220 @@ def visualize_flow_data(X_true, X_noisy, simulation_dir=''):
 
 
 
-def animate_flowfields(datsets, n_frames=40, cmaps=None, titles=None, rms_cmap='Reds', visualize=True):
+def animate_flowfields(datsets, n_frames=40, cmaps=None, titles=None, rms_cmap='Reds', step=1, rows=False, figsize=None):
+    """
+    Create an animation of flow fields from multiple datasets.
+    Inputs:
+    - datsets: List of datasets, each containing flow field data. Each of shape: Nt x Ny x Nx
+    - n_frames: Number of frames in the animation.
+    - cmaps: List of colormaps for each dataset.
+    - titles: List of titles for each dataset.
+    - rms_cmap: Colormap for RMS datasets.
+    """
+
 
     if cmaps is None:
         cmaps = ['viridis'] * len(datsets)
     if titles is None:
         titles = [f'Dataset {i+1}' for i in range(len(datsets))]
 
-    fig, axs = plt.subplots(1, len(datsets), sharex=True, sharey=True, figsize=(1.5*len(datsets), 4), layout='constrained')
+    if rows:
+        if figsize is None:
+            figsize = (1.5*len(datsets), 4)
+        fig, axs = plt.subplots(len(datsets), 1,  sharex=True, sharey=True, figsize=figsize, layout='constrained')
+        cbar_orientation = 'vertical'
+    else:
+        if figsize is None:
+            figsize = (4, 1.5*len(datsets))
+        fig, axs = plt.subplots(1, len(datsets), sharex=True, sharey=True, figsize=figsize, layout='constrained')
+        cbar_orientation = 'horizontal'
+
     if len(datsets) == 1:
         axs = [axs]
+
     ims = []
+
     for ax, D, ttl, cmap in zip(axs, datsets, titles, cmaps):
         if 'RMS' in ttl:
             ims.append(ax.pcolormesh(D[0], rasterized=True, cmap=plt.get_cmap(rms_cmap), vmin=0, vmax=1))
         else:
-            ims.append(ax.pcolormesh(D[0], rasterized=True, cmap=plt.get_cmap(cmap)))
-        ax.set(title=ttl, xticks=[], yticks=[])
-        fig.colorbar(ims[-1], ax=ax, orientation='horizontal')
+            norm = mpl.colors.Normalize(vmin=np.min(D), vmax=np.max(D))
+            ims.append(ax.pcolormesh(D[0], rasterized=True, cmap=plt.get_cmap(cmap), norm=norm))
+        
+        ax.set(xticks=[], yticks=[])
+
+        fig.colorbar(ims[-1], ax=ax, orientation=cbar_orientation, label=ttl)
+
 
     def animate(ti):
         [im.set_array(D[ti]) for im, D in zip(ims, datsets)]
         print(f'Frame {ti + 1}/{n_frames}', flush=True, end='\r')
         return ims
 
-    # plt.close(fig)
+    frame_indices = list(range(0, n_frames, step))  # Only these time indices will be plotted
 
-    return FuncAnimation(fig, animate, frames=n_frames)
+
+    plt.close(fig)
+
+    return FuncAnimation(fig, animate, frames=len(frame_indices), cache_frame_data=False)
+
+
+
+def get_figsize_based_on_domain(domain, total_subplots, max_cols=5, total_width=6):
+# def get_figsize_with_total_width(domain, total_width=12, min_height=4, ncols=2, nrows=1):
+    """
+    Returns a (fig_width, fig_height) figsize in inches, 
+    where fig_width is set by total_width, and fig_height is scaled by domain aspect ratio.
+    
+    Parameters:
+    - domain: [xmin, xmax, ymin, ymax]
+    - total_width: total width of the figure in inches
+    - min_height: minimum height in inches (for readability)
+    - ncols, nrows: subplot layout (for multi-panel figures)
+    
+    Returns:
+    - Tuple: (fig_width, fig_height)
+    """
+    x_span = abs(domain[1] - domain[0])
+    y_span = abs(domain[3] - domain[2])
+
+    aspect_ratio = y_span / x_span if x_span != 0 else 1
+
+    # Favor rows if aspect ratio is tall; favor cols if wide
+    if aspect_ratio > 1:
+        ncols = min(max_cols, total_subplots)
+        nrows = int(np.ceil(total_subplots / ncols))
+        fig_width = total_width
+        fig_height =   (total_width / ncols) * aspect_ratio * nrows
+
+    elif aspect_ratio < 1:
+        nrows = min(max_cols, total_subplots)
+        ncols = int(np.ceil(total_subplots / nrows))
+        fig_height = total_width
+        fig_width =   (total_width / nrows) / aspect_ratio * ncols
+        
+    return (fig_width, fig_height), ncols, nrows
+
+
+
+def get_cropped_indices(original_grid, 
+                        original_domain, 
+                        domain_of_interest, 
+                        down_sample=None):
+
+    # Extract original and DOI boundaries
+    Nx, Ny = original_grid
+    x_min, x_max, y_min, y_max = original_domain
+    doi_x_min, doi_x_max, doi_y_min, doi_y_max = domain_of_interest
+
+    # Generate 1D spatial grids for original domain
+    x = np.linspace(x_min, x_max, Nx)
+    y = np.linspace(y_min, y_max, Ny)
+
+    # Find indices within domain_of_interest along each axis
+    x_idx = np.where((x >= doi_x_min) & (x <= doi_x_max))[0]
+    y_idx = np.where((y >= doi_y_min) & (y <= doi_y_max))[0]
+
+
+    if len(x_idx) == 0 or len(y_idx) == 0:
+        raise ValueError('Domain of interest does not overlap with original domain grid.')
+
+
+    if down_sample is not None:
+        if isinstance(down_sample, int):
+            down_sample = [down_sample]
+        if len(down_sample) == 1:
+            step_x = step_y = down_sample[0]
+        elif len(down_sample) == 2:
+            step_x, step_y = down_sample
+        else:
+            raise AssertionError(f'Too many downsample entries: {down_sample}')
+
+        x_idx = x_idx[::step_x]
+        y_idx = y_idx[::step_y]
+
+
+    return np.ix_(x_idx, y_idx)
+
+
+
+
+def crop_data_to_domain_of_interest(data,
+                                    original_domain: 'list | tuple',
+                                    domain_of_interest: 'list | tuple',
+                                    down_sample: 'int | list | tuple' = None,
+                                    visualize=True):
+        """
+        Adjust the domain and grid shape for a given dataset.
+
+        Args:
+            - data: The dataset to process. Shape: (Nu, Nt), Nx, Ny
+            - original_domain: (x_min, x_max, y_min, y_max) tuple for the entire data domain
+            - domain_of_interest: (x_min, x_max, y_min, y_max) tuple specifying subdomain to crop to
+
+        Returns:
+            - Processed dataset, new domain, new grid shape, and the index mapping.
+        """
+
+        if data.ndim <= 4 and data.ndim >= 2:
+            original_grid = list(data.shape[-2:])
+        else:
+            raise ValueError(f'data input shape must be [(Nu, Nt) x Nx x Ny], got {data.shape}')
+
+        # # Extract original and DOI boundaries
+        # Nx, Ny = original_grid
+        # x_min, x_max, y_min, y_max = original_domain
+        # doi_x_min, doi_x_max, doi_y_min, doi_y_max = domain_of_interest
+
+        # # Generate 1D spatial grids for original domain
+        # x = np.linspace(x_min, x_max, Nx)
+        # y = np.linspace(y_min, y_max, Ny)
+
+        # # Find indices within domain_of_interest along each axis
+        # x_idx = np.where((x >= doi_x_min) & (x <= doi_x_max))[0]
+        # y_idx = np.where((y >= doi_y_min) & (y <= doi_y_max))[0]
+
+
+        # if len(x_idx) == 0 or len(y_idx) == 0:
+        #     raise ValueError('Domain of interest does not overlap with original domain grid.')
+
+
+        # if down_sample is not None:
+        #     if isinstance(down_sample, int):
+        #         down_sample = [down_sample]
+        #     if len(down_sample) == 1:
+        #         step_x = step_y = down_sample[0]
+        #     elif len(down_sample) == 2:
+        #         step_x, step_y = down_sample
+        #     else:
+        #         raise AssertionError(f'Too many downsample entries: {down_sample}')
+
+        #     x_idx = x_idx[::step_x]
+        #     y_idx = y_idx[::step_y]
+
+
+        # cropped_grid_indices = np.ix_(x_idx, y_idx)
+
+        cropped_grid_indices = get_cropped_indices(original_grid, original_domain, 
+                                                   domain_of_interest, down_sample)
+
+        data_cropped = data[..., cropped_grid_indices[0], cropped_grid_indices[1]].copy()
+
+        if visualize:
+
+            _, ax = plt.subplots(figsize=(12, 3), layout='constrained', nrows=1, ncols=1, sharex=True, sharey=True)
+            
+            X, Y = np.meshgrid(x, y, indexing='ij')
+
+            only_u_i = np.zeros(data.ndim, dtype=object)
+            only_u_i[-2:] = slice(None)
+
+            u = data[tuple(only_u_i)].copy()
+            u_c = data_cropped[tuple(only_u_i)].copy()
+
+            im0 = ax.pcolormesh(X, Y, u, cmap='Grays', rasterized=True)
+            im1 = ax.pcolormesh(X[cropped_grid_indices], Y[cropped_grid_indices], u_c, cmap='viridis', rasterized=True)
+            
+        return data_cropped, cropped_grid_indices
+
+

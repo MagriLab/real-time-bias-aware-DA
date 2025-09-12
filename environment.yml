@@ -20,7 +20,10 @@ dependencies:
   - seaborn=0.13
   - tabulate=0.9
   - tqdm=4.67
+  - pytorch
+  - wandb
   - pip:
     - ipython-genutils~=0.2
     - modulo-vki==2.1
     - pyqt5~=5.15
+    - -e .
